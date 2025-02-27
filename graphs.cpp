@@ -1,3 +1,10 @@
+#include <map>
+using namespace std;
+
+map<float, tuple<int, int>> dim_0(int n){
+    map<float, tuple<int, int>> weights;
+    return weights;
+}
 /*
 def graph_basic_no_g(n):
     # output: number of vertices and weights dict
