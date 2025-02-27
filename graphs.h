@@ -1,6 +1,14 @@
+#include <map>
 #include <iostream>
 #include <vector>
 using namespace std;
+
+using dict = map<float, pair<int, int> >;
+
+dict dim_0(float n);
+
+#ifndef _CircleClass_Header_
+#define _CircleClass_Header_
 
 class DisjointUnionSets{
    vector<int> rank, parent;
@@ -28,7 +36,9 @@ public:
       int rank_y = rank[y];
       if (rank_x > rank_y){
          // swap x and y
-         x, y = y, x;
+         int x_temp = x;
+         x = y;
+         y = x_temp;
       }
       if (rank_x == rank_y){
          rank[y]++;
@@ -39,3 +49,5 @@ public:
       link(find(x), find(y));
    }
 };
+
+#endif 

@@ -1,26 +1,39 @@
 #include <map>
-using namespace std;
+#include <cmath>
+#include <random>
+#include <iostream>
+#include "graphs.h"
 
-map<float, tuple<int, int>> dim_0(int n){
-    map<float, tuple<int, int>> weights;
+using namespace std;
+//clang++ -std=c++11 -Wall graphs.cpp -o graphs
+
+// dict = sorted dictionary-like type
+using dict = map<float, pair<int, int> >;
+
+float random_float(){
+    // generate random float between 0 and 1, uniform
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 1.0);
+    return dis(gen);
+}
+
+dict dim_0(float n){
+    // weights = dictionary of edges in graph, and corresponding weight
+    dict weights;
+    // prune edges with weight above cut_off
+    float cut_off = 20.0*(1.0/(n-1.0)-1.0/(exp2(n)));
+    for (int i = 0; i < n; i++){
+        for (int j = i+1; j < n; j++){
+            float w = random_float();
+            if (w<cut_off || n <3){
+                weights[w] = make_pair(i,j);
+            }
+        }
+    }
     return weights;
 }
 /*
-def graph_basic_no_g(n):
-    # output: number of vertices and weights dict
-    weight = {}
-    # decide edges to ignore
-    cut_off = float('inf')
-    if n > 3:
-        cut_off = 20*(1/(n-1)-1/((n-1)**2))
-    # edge from every v to every w except itself, add random weight
-    for v in range(n):
-        for edge in range(v+1,n):
-            w = random.uniform(0, 1)
-            if w < cut_off:
-                weight[(v,edge)] = w
-    return weight
-
 def hypercube_no_g(n):
     # output: number of vertices and weights dict
     weight = {}
