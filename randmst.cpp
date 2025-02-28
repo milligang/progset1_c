@@ -8,11 +8,13 @@
 
 using namespace std;
 
-//clang++ -Wall name.cpp -o name ./name
-//clang++ -Wall graphs.cpp -o graphs
+//clang++ -std=c++11 -Wall randmst.cpp -o randmst
 //input to command line: ./randmst 0 numpoints numtrials dimension
 
 using dict = vector<tuple<float, int, int> >;
+
+// weights = pointer to 'dictionary' of edges in graph and corresponding weight
+dict *weights = new dict;
 
 // ********** disjoint union set class for kruskals **********
 class DisjointUnionSets{
@@ -66,24 +68,20 @@ float random_float(){
     return dis(gen);
 }
 
-dict dim_0(float n){
-    // weights = 'dictionary' of edges in graph, and corresponding weight
-    dict weights;
+void dim_0(float n){
     // prune edges with weight above cut_off
     float cut_off = 20.0*(1.0/(n-1.0)-1.0/(exp2(n)));
     for (int i = 0; i < n; i++){
         for (int j = i+1; j < n; j++){
             float w = random_float();
             if (w < cut_off){
-                weights.push_back(make_tuple(w,i,j));
+                weights->push_back(make_tuple(w,i,j));
             }
         }
     }
-    return weights;
 }
 
-dict dim_1(float n){
-    dict weights;
+void dim_1(float n){
     float cut_off = 0.45 + pow(n, -0.25);
     for (int i = 0; i < n; i++){
         for (int j = i+1; j < n; j++){
@@ -91,16 +89,14 @@ dict dim_1(float n){
                 if (w < cut_off){
                     float num = log2(abs(i-2));
                     if ((num - round(num)) == 0){
-                        weights.push_back(make_tuple(w, i, j));
+                        weights->push_back(make_tuple(w, i, j));
                     }
                 }
         }
     }
-    return weights;
 }
 
-dict dim_2(float n){
-    dict weights;
+void dim_2(float n){
     int n_int = (int)n;
     float points[n_int][n_int];
     float cut_off = 3*pow(n, -0.5);
@@ -118,29 +114,25 @@ dict dim_2(float n){
             float y2 = points[j][1];
             float dist = sqrt(pow((x2-x1),2)+pow((y2-y1),2));
             if (dist < cut_off){
-                weights.push_back(make_tuple(dist, i, j));
+                weights->push_back(make_tuple(dist, i, j));
             }
         }
     }
-    return weights;
 }
-/*
-0.48 on 500 vertices - way too slow
-*/
 
 // ********** implementation of kruskals algorithm **********
 
-float kruskals(int n, dict w){
+float kruskals(int n){
     float mstweight = 0;
     set<pair<int,int> > x;
     // create set for each vertex; assuming vertices are numbered 0 to n-1
     DisjointUnionSets dus(n);
     // sort edges by weight
-    sort(w.begin(), w.end());
-    int edge_count = w.size();
+    sort(weights->begin(), weights->end());
+    int edge_count = weights->size();
     // iterate through the edges
     for (int index = 0; index < edge_count; index++){
-        tuple<float, int, int> edge = w.at(index);
+        tuple<float, int, int> edge = weights->at(index);
         float weight = get<0>(edge);
         int i = get<1>(edge);
         int j = get<2>(edge);
@@ -172,18 +164,17 @@ int main(int argc, char *argv[]){
     int numtrials = atoi(argv[3]);
     int dimension = atoi(argv[4]);
 
-    dict weights;
     float total = 0;
     for (int i = 0; i < numtrials; i++){
         // select dimension (not sure how to make a variable a function in cpp)
         if (dimension == 0){
-            weights = dim_0(numpoints);
+            dim_0(numpoints);
         }
         else if (dimension == 1){
-            weights = dim_1(numpoints);
+            dim_1(numpoints);
         }
         else if (dimension == 2){
-            weights = dim_1(numpoints);
+            dim_1(numpoints);
         }
         /*
         else if (dimension == 3){
@@ -194,9 +185,10 @@ int main(int argc, char *argv[]){
         }
         else { return -1; }
         */
-       float mstweight = kruskals(numpoints, weights);
+       float mstweight = kruskals(numpoints);
        total += mstweight;
     }
+    delete weights;
     float avg = total / numtrials;
     int points = floor(numpoints);
     printf("%f %d %d %d", avg, points, numtrials, dimension);
