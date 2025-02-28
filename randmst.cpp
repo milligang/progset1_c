@@ -1,9 +1,10 @@
-#include <map>
+#include <tuple>
 #include <iostream>
 #include <set>
 #include <cmath>
 #include <vector>
 #include <random>
+#include <time.h>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ using namespace std;
 //clang++ -Wall graphs.cpp -o graphs
 //input to command line: ./randmst 0 numpoints numtrials dimension
 
-using dict = map<float, pair<int, int> >;
+using dict = vector<tuple<float, int, int> >;
 
 // ********** disjoint union set class for kruskals **********
 class DisjointUnionSets{
@@ -66,39 +67,62 @@ float random_float(){
 }
 
 dict dim_0(float n){
-    // weights = dictionary of edges in graph, and corresponding weight
+    clock_t start = clock();
+    // weights = 'dictionary' of edges in graph, and corresponding weight
     dict weights;
     // prune edges with weight above cut_off
     float cut_off = 20.0*(1.0/(n-1.0)-1.0/(exp2(n)));
+    cout << cut_off << endl;
     for (int i = 0; i < n; i++){
         for (int j = i+1; j < n; j++){
             float w = random_float();
-            if (w < cut_off || n < 3){
-                weights[w] = make_pair(i,j);
+            if (w < cut_off){
+                weights.push_back(make_tuple(w,i,j));
             }
         }
     }
+    clock_t end = clock();
+    printf("%f",double(end - start) / CLOCKS_PER_SEC);
     return weights;
 }
+/*
+0.48 on 500 vertices - way too slow
+7.860550
+*/
 
 // ********** implementation of kruskals algorithm **********
 
 float kruskals(int n, dict w){
     float mstweight = 0;
-    // set<pair<int,int> > x;
+    set<pair<int,int> > x;
     // create set for each vertex; assuming vertices are numbered 0 to n-1
     DisjointUnionSets dus(n);
+    // sort edges by weight
+    sort(w.begin(), w.end());
+    int edge_count = w.size();
     // iterate through the edges
-    for(const auto& elem : w){
-        int i = elem.second.first;
-        int j = elem.second.second;
+    for (int index = 0; index < edge_count; index++){
+        tuple<float, int, int> edge = w.at(index);
+        float weight = get<0>(edge);
+        int i = get<1>(edge);
+        int j = get<2>(edge);
         if (dus.find(i) != dus.find(j)){
-            // x.insert(make_pair(i,j));
+            x.insert(make_pair(i,j));
             dus.unite(i,j);
-            mstweight += elem.first;
+            mstweight += weight;
         }
     }
     return mstweight;
+}
+
+int timer(int n, int (*f)(int)){
+    clock_t start = clock();
+    int k = f(n);
+    clock_t end = clock();
+    double total_time = double(end - start) / CLOCKS_PER_SEC; // Convert to seconds
+    cout << "Execution time:" << total_time << " seconds" << endl;
+    cout << k << std::endl;
+    return 0;
 }
 
 // ********** now find the mst! **********
