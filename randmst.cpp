@@ -67,12 +67,10 @@ float random_float(){
 }
 
 dict dim_0(float n){
-    clock_t start = clock();
     // weights = 'dictionary' of edges in graph, and corresponding weight
     dict weights;
     // prune edges with weight above cut_off
     float cut_off = 20.0*(1.0/(n-1.0)-1.0/(exp2(n)));
-    cout << cut_off << endl;
     for (int i = 0; i < n; i++){
         for (int j = i+1; j < n; j++){
             float w = random_float();
@@ -81,13 +79,53 @@ dict dim_0(float n){
             }
         }
     }
-    clock_t end = clock();
-    printf("%f",double(end - start) / CLOCKS_PER_SEC);
+    return weights;
+}
+
+dict dim_1(float n){
+    dict weights;
+    float cut_off = 0.45 + pow(n, -0.25);
+    for (int i = 0; i < n; i++){
+        for (int j = i+1; j < n; j++){
+                float w = random_float();
+                if (w < cut_off){
+                    float num = log2(abs(i-2));
+                    if ((num - round(num)) == 0){
+                        weights.push_back(make_tuple(w, i, j));
+                    }
+                }
+        }
+    }
+    return weights;
+}
+
+dict dim_2(float n){
+    dict weights;
+    int n_int = (int)n;
+    float points[n_int][n_int];
+    float cut_off = 3*pow(n, -0.5);
+    for (int i = 0; i < n; i++){
+        float x = random_float();
+        float y = random_float();
+        points[i][0] = x;
+        points[i][1] = y;
+    }
+    for (int i = 0; i < n; i++){
+        float x1 = points[i][0];
+        float y1 = points[i][1];
+        for (int j = 0; j < n; j++){
+            float x2 = points[j][0];
+            float y2 = points[j][1];
+            float dist = sqrt(pow((x2-x1),2)+pow((y2-y1),2));
+            if (dist < cut_off){
+                weights.push_back(make_tuple(dist, i, j));
+            }
+        }
+    }
     return weights;
 }
 /*
 0.48 on 500 vertices - way too slow
-7.860550
 */
 
 // ********** implementation of kruskals algorithm **********
@@ -141,13 +179,13 @@ int main(int argc, char *argv[]){
         if (dimension == 0){
             weights = dim_0(numpoints);
         }
-        /*
         else if (dimension == 1){
             weights = dim_1(numpoints);
         }
         else if (dimension == 2){
             weights = dim_1(numpoints);
         }
+        /*
         else if (dimension == 3){
             weights = dim_1(numpoints);
         }
